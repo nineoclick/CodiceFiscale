@@ -7,15 +7,20 @@ namespace CodiceFiscale;
  * @author SimoneNigro
  *
  */
-class Checker
-{
-    // fiscal's code regex
+class Checker {
+    /**
+     * fiscal's code regex
+     */
     const REGEX_CODICEFISCALE = '/^[a-z]{6}[0-9]{2}[a-z][0-9]{2}[a-z][0-9]{3}[a-z]$/i';
 
-    // women char
+    /**
+     * women char
+     */
     const CHR_WOMEN = 'F';
 
-    // male char
+    /**
+     * male char
+     */
     const CHR_MALE = 'M';
 
     /**
@@ -80,7 +85,7 @@ class Checker
 
     /**
      * Weight odd char
-     * @var unknown_type
+     * @var array
      */
     private $listOddChar = array('0' => 1, '1' => 0, '2' => 5, '3' => 7, '4' => 9, '5' => 13, '6' => 15, '7' => 17, '8' => 19, '9' => 21, 'A' => 1, 'B' => 0, 'C' => 5, 'D' => 7, 'E' => 9, 'F' => 13, 'G' => 15, 'H' => 17, 'I' => 19, 'J' => 21, 'K' => 2, 'L' => 4, 'M' => 18, 'N' => 20, 'O' => 11, 'P' => 3, 'Q' => 6, 'R' => 8, 'S' => 12, 'T' => 14, 'U' => 16, 'V' => 10, 'W' => 22, 'X' => 25, 'Y' => 24, 'Z' => 23);
 
@@ -98,7 +103,7 @@ class Checker
 
     /**
      * Error list
-     * @var unknown_type
+     * @var array
      */
     private $listError = array(0 => 'Empty code', 1 => 'Len error', 2 => 'Code with wrong char', 3 => 'Code with wrong char in omocodia', 4 => 'Wrong code');
 
@@ -183,17 +188,17 @@ class Checker
         $this->resetProperties();
 
         try {
-            // check empty
+            # check empty
             if (empty($codiceFiscale)) {
                 $this->raiseException(0);
             }
 
-            // Vcheck len
+            # Vcheck len
             if (strlen($codiceFiscale) !== 16) {
                 $this->raiseException(1);
             }
 
-            // Check regex
+            # Check regex
             if (!preg_match(self::REGEX_CODICEFISCALE, $codiceFiscale)) {
                 $this->raiseException(2);
             }
@@ -201,7 +206,7 @@ class Checker
             $codiceFiscale = strtoupper($codiceFiscale);
             $cFCharList = str_split($codiceFiscale);
 
-            // check omocodia
+            # check omocodia
             for ($i = 0; $i < count($this->listSostOmocodia); $i++) {
                 if (!is_numeric($cFCharList[$this->listSostOmocodia[$i]])) {
                     if ($this->listDecOmocodia[$cFCharList[$this->listSostOmocodia[$i]]] === '!') {
@@ -213,18 +218,18 @@ class Checker
             $pari = 0;
             $dispari = $this->listOddChar[$cFCharList[14]];
 
-            // loop first 14 char, step 2
+            # loop first 14 char, step 2
             for ($i = 0; $i < 13; $i += 2) {
                 $dispari = $dispari + $this->listOddChar[$cFCharList[$i]];
                 $pari = $pari + $this->listEvenChar[$cFCharList[$i + 1]];
             }
 
-            // verify first 15 char with checksum char (char 16)
+            # verify first 15 char with checksum char (char 16)
             if (!($this->listCtrlCode[($pari + $dispari) % 26] === $cFCharList[15])) {
                 $this->raiseException(4);
             }
 
-            // replace "omocodie"
+            # replace "omocodie"
             for ($i = 0; $i < count($this->listSostOmocodia); $i++) {
                 if (!is_numeric($cFCharList[$this->listSostOmocodia[$i]])) {
                     $CFCharList[$this->listSostOmocodia[$i]] = $this->listDecOmocodia[$cFCharList[$this->listSostOmocodia[$i]]];
@@ -233,14 +238,14 @@ class Checker
 
             $codiceFiscaleAdattato = implode($cFCharList);
 
-            // get fiscal code data
+            # get fiscal code data
             $this->sex = ((int)(substr($codiceFiscaleAdattato, 9, 2) > 40) ? self::CHR_WOMEN : self::CHR_MALE);
             $this->countryBirth = substr($codiceFiscaleAdattato, 11, 4);
             $this->yearBirth = substr($codiceFiscaleAdattato, 6, 2);
             $this->dayBirth = substr($codiceFiscaleAdattato, 9, 2);
             $this->monthBirth = $this->listDecMonth[substr($codiceFiscaleAdattato, 8, 1)];
 
-            // get day birth if sex is women
+            # get day birth if sex is women
             if ($this->sex == self::CHR_WOMEN) {
                 $this->dayBirth = $this->dayBirth - 40;
 
@@ -249,7 +254,7 @@ class Checker
                 }
             }
 
-            // End verify
+            # End verify
             $this->isValid = true;
             $this->error = null;
         } catch (\Exception $e) {
